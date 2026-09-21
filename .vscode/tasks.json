@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "API: start",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/services/api" },
+      "isBackground": true,
+      "presentation": { "group": "sakhi", "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": {
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Sakhi API listening"
+        }
+      }
+    },
+    {
+      "label": "Mobile: start Expo",
+      "type": "shell",
+      "command": "npx expo start",
+      "options": { "cwd": "${workspaceFolder}/apps/mobile" },
+      "isBackground": true,
+      "presentation": { "group": "sakhi", "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start everything",
+      "dependsOn": ["API: start", "Mobile: start Expo"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Tests: all",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/services/api" },
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests: claim race only",
+      "type": "shell",
+      "command": "npm run test:concurrency",
+      "options": { "cwd": "${workspaceFolder}/services/api" },
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Typecheck both packages",
+      "type": "shell",
+      "command": "npm run typecheck",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": ["$tsc"]
+    }
+  ]
+}

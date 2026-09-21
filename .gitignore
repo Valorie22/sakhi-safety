@@ -16,7 +16,13 @@ npm-debug.log*
 Thumbs.db
 *.tsbuildinfo
 coverage/
-.vscode/
+# .vscode is deliberately committed: tasks.json and launch.json are how this
+# project is run and debugged, which is shared knowledge, not personal taste.
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
 *.jks
 *.p8
