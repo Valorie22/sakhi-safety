@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
 import { useAuth } from '../../src/auth';
 import { Body, Button, ErrorNote, Field, H1, Screen } from '../../src/components/ui';
@@ -9,6 +9,7 @@ export default function SignIn() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [reveal, setReveal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -18,7 +19,19 @@ export default function SignIn() {
     try {
       await signIn(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not sign in');
+      const message = err instanceof Error ? err.message : 'Could not sign in';
+
+      // A phone keyboard routinely appends a space after predictive text, and
+      // the server can only answer "invalid credentials" - which sends people
+      // hunting for the wrong problem. Say what it usually is.
+      if (/invalid login credentials/i.test(message) && password !== password.trim()) {
+        setError(
+          'That did not match. Your password has a space at the start or end — ' +
+            'tap Show to check.',
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setBusy(false);
     }
@@ -52,11 +65,27 @@ export default function SignIn() {
           label="Password"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
+          secureTextEntry={!reveal}
           autoCapitalize="none"
+          // Autocorrect on a password field is only ever destructive: it cannot
+          // know the word, and it is what silently appends the trailing space.
+          autoCorrect={false}
+          spellCheck={false}
+          autoComplete="current-password"
           textContentType="password"
           placeholder="Your password"
         />
+
+        <Pressable
+          onPress={() => setReveal((v) => !v)}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: reveal }}
+          accessibilityLabel={reveal ? 'Hide password' : 'Show password'}
+          style={s.reveal}
+          hitSlop={12}
+        >
+          <Text style={s.revealText}>{reveal ? 'Hide password' : 'Show password'}</Text>
+        </Pressable>
 
         <Button title="Sign in" onPress={submit} loading={busy} />
 
@@ -78,6 +107,8 @@ export default function SignIn() {
 
 const s = StyleSheet.create({
   brand: { marginBottom: spacing.xl },
+  reveal: { alignSelf: 'flex-end', marginTop: -spacing.sm, marginBottom: spacing.lg, padding: spacing.sm },
+  revealText: { ...type.small, color: colors.primarySoft, fontWeight: '700' },
   mark: { fontSize: 40, color: colors.primarySoft, fontWeight: '700', marginBottom: spacing.xs },
   note: {
     marginTop: spacing.xl,
