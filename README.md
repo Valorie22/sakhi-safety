@@ -137,6 +137,23 @@ It also asserts a user cannot promote their own `role`, cannot create a station,
 cannot call `trigger_emergency` or `claim_emergency` directly, and that
 `emergency_timeline` rejects UPDATE and DELETE *even from the service role*.
 
+### The Level 2 chain, end to end
+
+```bash
+npx vitest run tests/e2e-level2.test.ts
+```
+
+Drives a whole incident over real HTTP with real user JWTs — no service-role
+shortcuts except for fixtures. A reporter triggers Level 2, registers an audio
+segment, pushes bytes through a signed upload URL; an officer claims the case,
+mints a signed download URL and gets **byte-identical** audio back; an
+unrelated signed-in user is refused with 403; the object is unreachable from
+the public storage path; the access lands in `evidence_access_log` and the
+refused stranger does *not*; the officer walks the case to resolved, after
+which location pings are refused and recording is marked ended.
+
+This is the part that would otherwise have needed a phone to believe.
+
 ---
 
 ## 4. How the pieces fit
@@ -206,8 +223,10 @@ together, and rolls all three back if any step fails.
 - **No push credentials configured.** `getExpoPushTokenAsync()` needs an EAS
   project id to return a token outside Expo Go. Until then the outbox marks
   rows delivered and the in-app notification centre carries everything.
-- **The API has route tests only via the DB-level suites** — no supertest layer
-  over the Express routes yet.
+- **Nothing has run on a physical phone yet.** Shake detection, countdown
+  behaviour across backgrounding, microphone capture, push delivery and map
+  rendering are implemented and type-checked but have never executed on real
+  hardware. The server side of each is covered; the device side is not.
 
 ---
 
@@ -259,7 +278,7 @@ GET    /api/v1/admin/evidence-access
 
 ## 8. Acceptance checklist
 
-`npm test` — **24 passed / 24**, against the live database.
+`npm test` — **37 passed / 37**, against the live database.
 
 | | Status |
 |---|---|
@@ -273,15 +292,15 @@ GET    /api/v1/admin/evidence-access
 | Losing officers are told who won | **verified** — all 7 losers named the same winner each round |
 | Exactly one `case_claimed` event per case | **verified** |
 | Officer at an undispatched station cannot claim | **verified** |
-| Status progression fires notifications + timeline | built |
-| Level 2 audio → private storage → officer-only signed URL | built; bucket privacy **verified** |
+| Status progression `claimed → responding → on_scene → resolved` | **verified** over HTTP |
+| Level 2 audio → private storage → officer-only signed URL | **verified** — bytes round-tripped byte-identical; stranger 403'd; public path unreachable |
 | Level 3 visually unmistakable, re-notifies | built |
 | Family and police see only what they're authorised for | **verified** — 5 personas, 11 assertions |
 | A user cannot promote their own role to police or admin | **verified** |
 | Clients cannot call `trigger_emergency` / `claim_emergency` directly | **verified** |
-| Timeline complete, ordered, immutable | **verified** — UPDATE and DELETE rejected even for the service role |
+| Timeline complete, ordered, immutable | **verified** — all 8 event kinds present and in order; UPDATE/DELETE rejected even for the service role |
 | Accepted contacts cannot read audio evidence | **verified** |
-| Resolve/cancel stops live location writes and recording | built |
+| Resolve/cancel stops live location writes and recording | **verified** — pings 409 after close, recording ended |
 | Retried SOS does not create a second emergency | **verified** — 6 concurrent identical submissions → 1 row |
 
 "Verified" means an automated test asserted it against the live database in
