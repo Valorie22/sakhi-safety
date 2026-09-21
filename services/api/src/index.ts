@@ -62,6 +62,24 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`Supabase project: ${env.SUPABASE_URL}`);
   });
 
+  // Without this, a port clash surfaces as an unhandled 'error' event and a
+  // ten-line stack trace, which buries the one fact that matters.
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(
+        `\nPort ${env.PORT} is already in use - most likely an earlier copy of this\n` +
+          `server is still running.\n\n` +
+          `  Windows:      npx kill-port ${env.PORT}\n` +
+          `  macOS/Linux:  lsof -ti:${env.PORT} | xargs kill -9\n\n` +
+          `Or pick another port in services/api/.env:  PORT=4001\n` +
+          `(if you change it, update EXPO_PUBLIC_API_URL in apps/mobile/.env too)\n`,
+      );
+      process.exit(1);
+    }
+    console.error('Server error:', err);
+    process.exit(1);
+  });
+
   startPushWorker();
 
   const shutdown = (signal: string) => {
