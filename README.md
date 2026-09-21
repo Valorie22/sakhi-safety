@@ -60,7 +60,7 @@ Supabase dashboard → Project Settings → API → `service_role` → reveal & 
 ```bash
 cp services/api/.env.example services/api/.env
 # paste the service_role key into SUPABASE_SERVICE_ROLE_KEY
-# SUPABASE_ANON_KEY is already filled in below
+# and the project URL + anon key (see LOCAL-SETUP.md, or the Supabase dashboard)
 ```
 
 The anon key is safe to ship in an app bundle — RLS decides what it can reach —
