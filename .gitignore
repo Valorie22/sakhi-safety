@@ -1,0 +1,28 @@
+node_modules/
+dist/
+build/
+.expo/
+.expo-export/
+web-build/
+
+# Secrets. The service-role key in particular must never be committed.
+.env
+.env.*
+!.env.example
+
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+coverage/
+.vscode/
+.idea/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Local, uncommitted setup notes containing live project values
+LOCAL-SETUP.md

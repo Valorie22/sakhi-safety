@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "Sakhi",
+    "slug": "sakhi-safety",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "sakhi",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#160910"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sakhi.safety",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Sakhi shares your location with the police stations that cover your area and with the trusted contacts you have added, but only while an emergency you started is running.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "So your location keeps reaching responders if your screen locks or you switch apps during an emergency. It is never tracked when no emergency is active.",
+        "NSMicrophoneUsageDescription": "At Level 2 and above, Sakhi records ambient audio as evidence and uploads it to private storage that only the responding officers can open. Recording stops the moment the emergency ends.",
+        "NSMotionUsageDescription": "Sakhi watches the motion sensor so a hard shake can trigger an alert when you cannot reach the screen. You can turn this off in Safety Settings.",
+        "UIBackgroundModes": ["location", "audio"]
+      }
+    },
+    "android": {
+      "package": "com.sakhi.safety",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#160910"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "RECORD_AUDIO",
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "HIGH_SAMPLING_RATE_SENSORS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Sakhi shares your location with responders only while an emergency is active.",
+          "locationWhenInUsePermission": "Sakhi needs your location to work out which police station covers you when you trigger an alert.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "At Level 2 and above, Sakhi records ambient audio as evidence for the responding officers."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#FF2D6F"
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {}
+    }
+  }
+}
