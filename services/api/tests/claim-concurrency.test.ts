@@ -90,12 +90,23 @@ beforeAll(async () => {
   }
 }, 120_000);
 
+/** Cleanup must never fail the run: the assertions already passed by here. */
+async function quietly(work: () => PromiseLike<unknown>): Promise<void> {
+  try {
+    await work();
+  } catch {
+    // ignore
+  }
+}
+
 afterAll(async () => {
   if (!db) return;
-  for (const id of createdEmergencies) await db.from('emergencies').delete().eq('id', id);
-  for (const id of officerIds) await db.auth.admin.deleteUser(id).catch(() => {});
-  if (reporterId) await db.auth.admin.deleteUser(reporterId).catch(() => {});
-  if (stationId) await db.from('police_stations').delete().eq('id', stationId).catch(() => {});
+  for (const id of createdEmergencies) {
+    await quietly(() => db.from('emergencies').delete().eq('id', id));
+  }
+  for (const id of officerIds) await quietly(() => db.auth.admin.deleteUser(id));
+  if (reporterId) await quietly(() => db.auth.admin.deleteUser(reporterId));
+  if (stationId) await quietly(() => db.from('police_stations').delete().eq('id', stationId));
 }, 120_000);
 
 async function freshEmergency(): Promise<string> {
@@ -193,8 +204,8 @@ describe('atomic case claiming', () => {
     expect((data as ClaimResult).ok).toBe(false);
     expect((data as ClaimResult).reason).toBe('not_routed_to_your_station');
 
-    await db.auth.admin.deleteUser(outsiderId).catch(() => {});
-    await db.from('police_stations').delete().eq('id', farStationId);
+    await quietly(() => db.auth.admin.deleteUser(outsiderId));
+    await quietly(() => db.from('police_stations').delete().eq('id', farStationId));
   }, 60_000);
 
   it('does not create a second emergency when the same request is retried', async () => {

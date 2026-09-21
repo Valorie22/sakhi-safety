@@ -95,11 +95,20 @@ beforeAll(async () => {
   emergencyId = (emergency as { emergency_id: string }).emergency_id;
 }, 180_000);
 
+/** Cleanup must never fail the run: the assertions already passed by here. */
+async function quietly(work: () => PromiseLike<unknown>): Promise<void> {
+  try {
+    await work();
+  } catch {
+    // ignore
+  }
+}
+
 afterAll(async () => {
   if (!db) return;
-  await db.from('emergencies').delete().eq('id', emergencyId).catch(() => {});
-  for (const u of Object.values(users)) await db.auth.admin.deleteUser(u.id).catch(() => {});
-  await db.from('police_stations').delete().in('id', [stationId, farStationId]).catch(() => {});
+  await quietly(() => db.from('emergencies').delete().eq('id', emergencyId));
+  for (const u of Object.values(users)) await quietly(() => db.auth.admin.deleteUser(u.id));
+  await quietly(() => db.from('police_stations').delete().in('id', [stationId, farStationId]));
 }, 120_000);
 
 async function visibleEmergencies(client: SupabaseClient): Promise<number> {

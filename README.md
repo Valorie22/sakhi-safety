@@ -113,6 +113,9 @@ Asserts one winner, seven `already_claimed` all naming the same officer, one
 `case_claimed` timeline event. The same file also fires six simultaneous
 identical SOS submissions and asserts they collapse to one emergency.
 
+**Result: passes.** Forty races, forty single winners, no double-claims and no
+duplicate emergencies.
+
 ### RLS as the real boundary
 
 ```bash
@@ -120,7 +123,7 @@ npm run test --workspace @sakhi/api      # includes tests/rls.test.ts
 ```
 
 Signs in as five real accounts with the public anon key and tries to read what
-it shouldn't. Verified directly against the database:
+it shouldn't — 21 assertions, all passing:
 
 | Persona | Emergencies visible |
 |---|---|
@@ -256,27 +259,37 @@ GET    /api/v1/admin/evidence-access
 
 ## 8. Acceptance checklist
 
+`npm test` — **24 passed / 24**, against the live database.
+
 | | Status |
 |---|---|
 | Register, log in, manage profile | built |
 | Exact-email contact search, accept/decline, accepted-only alerts | built |
 | Admin creates stations + officers; no police self-registration | built |
-| SOS finds **all** overlapping stations via PostGIS | **verified in DB** — 2 of 3 matched, far station excluded |
+| SOS finds **all** overlapping stations via PostGIS | **verified** — 2 of 3 matched, far station excluded |
 | Shake respects thresholds/cooldown, can be disabled | built |
 | Timer fires at zero, cancels cleanly, survives backgrounding | built (absolute deadline, persisted) |
-| Two officers claim at once — one wins | **verified in DB**; parallel test in `test:concurrency` |
-| Losing officers see "already taken" in realtime | built |
+| Two officers claim at once — only one wins | **verified** — 8 simultaneous officers × 5 rounds |
+| Losing officers are told who won | **verified** — all 7 losers named the same winner each round |
+| Exactly one `case_claimed` event per case | **verified** |
+| Officer at an undispatched station cannot claim | **verified** |
 | Status progression fires notifications + timeline | built |
-| Level 2 audio → private storage → officer-only signed URL | built |
+| Level 2 audio → private storage → officer-only signed URL | built; bucket privacy **verified** |
 | Level 3 visually unmistakable, re-notifies | built |
-| Family and police see only what they're authorised for | **verified in DB** against 5 personas |
-| Timeline complete, ordered, immutable | **verified** — trigger rejects UPDATE/DELETE |
-| Resolve/cancel stops location writes and recording | built |
-| Retried SOS does not create a second emergency | **verified in DB** |
+| Family and police see only what they're authorised for | **verified** — 5 personas, 11 assertions |
+| A user cannot promote their own role to police or admin | **verified** |
+| Clients cannot call `trigger_emergency` / `claim_emergency` directly | **verified** |
+| Timeline complete, ordered, immutable | **verified** — UPDATE and DELETE rejected even for the service role |
+| Accepted contacts cannot read audio evidence | **verified** |
+| Resolve/cancel stops live location writes and recording | built |
+| Retried SOS does not create a second emergency | **verified** — 6 concurrent identical submissions → 1 row |
 
-"Verified" means exercised against the live database in this build. "Built"
-means implemented and type-checked, but not yet exercised end-to-end on a
-device.
+"Verified" means an automated test asserted it against the live database in
+this build. "Built" means implemented and type-checked, but not yet exercised
+end-to-end on a device.
+
+Also checked by hand: the API boots, `/health` reports `database: ok`, and an
+unauthenticated `GET /api/v1/me` is refused with 401.
 
 ---
 
